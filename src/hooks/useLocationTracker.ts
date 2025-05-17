@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import GetLocation, { isLocationError } from 'react-native-get-location';
-import  reverseGeocode  from '../hooks/useReverseGeocoder';
+import reverseGeocode from '../hooks/useReverseGeocoder';
+import { insertLocation } from '../database/db';
 
 type Location = {
     latitude: number;
@@ -9,12 +10,12 @@ type Location = {
     time: number;
 };
 
-export const useLocationTracker = (intervalMinutes: number = 1) => {
+export const useLocationTracker = (intervalMinutes: number = 5) => {
     const [location, setLocation] = useState<Location | null>(null);
     const [tracking, setTracking] = useState(false);
-    const intervalRef = useRef<NodeJS.Timer | null>(null);
+    const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-    const getLocation = async() => {
+    const getLocation = async () => {
         GetLocation.getCurrentPosition({
             enableHighAccuracy: true,
             timeout: 30000,
@@ -25,10 +26,12 @@ export const useLocationTracker = (intervalMinutes: number = 1) => {
             },
         })
             .then(async newLocation => {
+
                 console.log(`Location updated at ${new Date().toLocaleTimeString()}:`);
                 // console.log(JSON.stringify(newLocation, null, 2));
-                console.log('Location accuracy:', newLocation.accuracy, 'meters');
-                console.log('Location time:', newLocation.time);
+                console.log('Location time (formatted):', new Date(newLocation.time).toString());
+                const formattedDate = new Date(newLocation.time).toISOString().split('T')[0];
+                console.log('Location date:', formattedDate);
                 console.log('Location latitude:', newLocation.latitude);
                 console.log('Location longitude:', newLocation.longitude);
                 setLocation(newLocation);
@@ -36,6 +39,20 @@ export const useLocationTracker = (intervalMinutes: number = 1) => {
                 console.log(estate)
                 const estateName = estate.split(',')[0];
                 console.log('Estate name:', estateName);
+
+                const locationData = {
+                    lat: newLocation.latitude,
+                    lon: newLocation.longitude,
+                    time: new Date().toISOString(),
+                    estate: estateName,
+                    dayKey: new Date(newLocation.time).toISOString().split('T')[0],
+                };
+
+                await insertLocation(locationData).then(() => {
+                    console.log('Location data inserted into database:', locationData);
+                }).catch(error => {
+                    console.error('Error inserting location data into database:', error);
+                });
             })
             .catch(ex => {
                 if (isLocationError(ex)) {
@@ -51,7 +68,7 @@ export const useLocationTracker = (intervalMinutes: number = 1) => {
         if (tracking) return;
 
         setTracking(true);
-        getLocation(); 
+        getLocation();
 
         const intervalMs = intervalMinutes * 60 * 1000;
 

@@ -5,9 +5,12 @@ import {
   View,
   Button,
 } from 'react-native';
+import { useEffect } from 'react';
 import { useLocationTracker } from './src/hooks/useLocationTracker';
+import { initializeDatabase } from './src/database/db';
+import { database } from './src/database/db';
 
-function App(): JSX.Element {
+const App: React.FC = () => {
   const intervalMinutes = 1;
   const {
     location,
@@ -16,9 +19,31 @@ function App(): JSX.Element {
     stopTracking,
   } = useLocationTracker(intervalMinutes);
 
+
+  useEffect(() => {
+    const initialize = async () => {
+      try {
+        await initializeDatabase();
+        console.log('Database initialized');
+      } catch (error) {
+        console.error('Error initializing database:', error);
+      }
+    };
+
+    initialize();
+
+    return () => {
+      if (database) {
+        database.close()
+          .then(() => console.log('Database closed'))
+          .catch(error => console.error('Error closing database:', error));
+      }
+    };
+  }, [])
+
   return (
     <View style={styles.container}>
-    
+
 
       <View style={styles.button}>
         <Button
