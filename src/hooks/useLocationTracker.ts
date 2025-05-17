@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import GetLocation, { isLocationError } from 'react-native-get-location';
+import  reverseGeocode  from '../hooks/useReverseGeocoder';
 
 type Location = {
     latitude: number;
@@ -13,7 +14,7 @@ export const useLocationTracker = (intervalMinutes: number = 1) => {
     const [tracking, setTracking] = useState(false);
     const intervalRef = useRef<NodeJS.Timer | null>(null);
 
-    const getLocation = () => {
+    const getLocation = async() => {
         GetLocation.getCurrentPosition({
             enableHighAccuracy: true,
             timeout: 30000,
@@ -23,7 +24,7 @@ export const useLocationTracker = (intervalMinutes: number = 1) => {
                 buttonPositive: 'Ok',
             },
         })
-            .then(newLocation => {
+            .then(async newLocation => {
                 console.log(`Location updated at ${new Date().toLocaleTimeString()}:`);
                 // console.log(JSON.stringify(newLocation, null, 2));
                 console.log('Location accuracy:', newLocation.accuracy, 'meters');
@@ -31,6 +32,10 @@ export const useLocationTracker = (intervalMinutes: number = 1) => {
                 console.log('Location latitude:', newLocation.latitude);
                 console.log('Location longitude:', newLocation.longitude);
                 setLocation(newLocation);
+                const estate = await reverseGeocode(newLocation.latitude, newLocation.longitude);
+                console.log(estate)
+                const estateName = estate.split(',')[0];
+                console.log('Estate name:', estateName);
             })
             .catch(ex => {
                 if (isLocationError(ex)) {
@@ -81,3 +86,5 @@ export const useLocationTracker = (intervalMinutes: number = 1) => {
         stopTracking,
     };
 };
+
+
