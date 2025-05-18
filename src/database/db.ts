@@ -55,7 +55,7 @@ export const insertLocation = async (location: LocationData) => {
         location.lon,
         location.time,
         location.estate,
-        location.dayKey 
+        location.dayKey
       ]
     );
 
@@ -72,18 +72,25 @@ export const getAllLocations = async (): Promise<LocationData[]> => {
     const db = await getDatabase();
     const [results] = await db.executeSql('SELECT * FROM locations ORDER BY time DESC');
 
+    // console.log("getAllLocations - raw results:", results);
+    // console.log("Row count:", results.rows.length);
+
     const locations: LocationData[] = [];
 
     for (let i = 0; i < results.rows.length; i++) {
-      locations.push(results.rows.item(i));
+      const item = results.rows.item(i);
+      // console.log(`Row ${i}:`, item); 
+      locations.push(item);
     }
 
+    console.log("Final locations array:", locations);
     return locations;
   } catch (error) {
     console.error('Error getting locations:', error);
     throw error;
   }
 };
+
 
 export const getEstateStats = async (): Promise<EstateStats[]> => {
   try {
@@ -102,10 +109,14 @@ export const getEstateStats = async (): Promise<EstateStats[]> => {
         daysSpent DESC
     `);
 
+    // console.log("getEstateStats: ", results);
+
     const stats: EstateStats[] = [];
 
     for (let i = 0; i < results.rows.length; i++) {
-      stats.push(results.rows.item(i));
+      const item = results.rows.item(i)
+      // console.log(`Row ${i}:`, item); 
+      stats.push(item);
     }
 
     return stats;

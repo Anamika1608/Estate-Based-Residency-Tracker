@@ -11,3 +11,8 @@ export interface EstateStats {
   estate: string;
   daysSpent: number;
 }
+
+export type RootStackParamList = {
+  Tracker: undefined;
+  Charts: undefined;
+};
