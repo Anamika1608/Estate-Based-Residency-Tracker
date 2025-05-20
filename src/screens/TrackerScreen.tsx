@@ -13,7 +13,7 @@ import { RootStackParamList } from '../types';
 const TrackerScreen: React.FC = () => {
     const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
-    const intervalMinutes = 1;
+    const intervalMinutes = 5;
     const {
         location,
         tracking,
