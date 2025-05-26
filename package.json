@@ -19,6 +19,7 @@
     "react-native": "0.79.2",
     "react-native-background-fetch": "^4.2.8",
     "react-native-dotenv": "^3.4.11",
+    "react-native-geolocation-service": "^5.3.1",
     "react-native-gesture-handler": "^2.25.0",
     "react-native-get-location": "^5.0.0",
     "react-native-safe-area-context": "^5.4.0",

@@ -1,89 +1,124 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   StyleSheet,
   Text,
   View,
-  TouchableOpacity,
+  ScrollView,
 } from 'react-native';
-import { EstateStats } from '../types';
+import { EstateStats, LocationData } from '../types';
+import { getAllLocations } from '../database/db';
 
 const TableView: React.FC<{
   estateStats: EstateStats[];
   isDarkMode: boolean;
   textColor: string;
 }> = ({ estateStats, isDarkMode, textColor }) => {
-  // Calculate total days
+  const [locationList, setLocationList] = useState<LocationData[]>([]);
+
+  // Fetch all locations from the DB for debugging
+  useEffect(() => {
+    const fetchLocations = async () => {
+      try {
+        const data = await getAllLocations();
+        setLocationList(data);
+      } catch (error) {
+        console.error('Error fetching location data:', error);
+      }
+    };
+    fetchLocations();
+  }, []);
+
   const totalDays = estateStats.reduce((sum, stat) => sum + stat.daysSpent, 0);
 
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container}>
+      {/* First Table - Main Display */}
       <View style={[
         styles.tableContainer,
         { borderColor: isDarkMode ? '#444' : '#ddd' }
       ]}>
-        {/* Table Header */}
         <View style={[
           styles.tableHeader,
           { backgroundColor: isDarkMode ? '#333' : '#f9f9f9' }
         ]}>
-          <Text style={[
-            styles.headerCell,
-            { flex: 3, color: textColor }
-          ]}>
+          <Text style={[styles.headerCell, { flex: 3, color: textColor }]}>
             Location
           </Text>
-          <Text style={[
-            styles.headerCell,
-            { flex: 1, textAlign: 'center', color: textColor }
-          ]}>
+          <Text style={[styles.headerCell, { flex: 1, textAlign: 'center', color: textColor }]}>
             Days
           </Text>
-
         </View>
 
-        {estateStats.map((stat, index) => {
+        {estateStats.map((stat, index) => (
+          <View
+            key={index}
+            style={[
+              styles.tableRow,
+              { borderTopColor: isDarkMode ? '#444' : '#ddd' },
+              index % 2 === 1 && {
+                backgroundColor: isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)'
+              }
+            ]}
+          >
+            <Text style={[styles.estateCell, { color: textColor }]} numberOfLines={1}>
+              {stat.estate}
+            </Text>
+            <Text style={[styles.daysCell, { color: textColor }]}>
+              {stat.daysSpent}
+            </Text>
+          </View>
+        ))}
 
-          return (
-            <View
-              key={index}
-              style={[
-                styles.tableRow,
-                { borderTopColor: isDarkMode ? '#444' : '#ddd' },
-                index % 2 === 1 && {
-                  backgroundColor: isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)'
-                }
-              ]}
-            >
-              <Text
-                style={[styles.estateCell, { color: textColor }]}
-                numberOfLines={1}
-                ellipsizeMode="tail"
-              >
-                {stat.estate}
-              </Text>
-              <Text style={[styles.daysCell, { color: textColor }]}>
-                {stat.daysSpent}
-              </Text>
-
-            </View>
-          );
-        })}
-
-        {/* Total Row */}
         <View style={[
           styles.totalRow,
           { borderTopColor: isDarkMode ? '#444' : '#ddd', backgroundColor: isDarkMode ? '#333' : '#f9f9f9' }
         ]}>
-          <Text style={[styles.totalCell, { color: textColor }]}>
-            Total
-          </Text>
-          <Text style={[styles.totalValueCell, { color: textColor }]}>
-            {totalDays}
-          </Text>
-
+          <Text style={[styles.totalCell, { color: textColor }]}>Total</Text>
+          <Text style={[styles.totalValueCell, { color: textColor }]}>{totalDays}</Text>
         </View>
       </View>
-    </View>
+
+      {/* <View style={[
+        styles.tableContainer,
+        { marginTop: 20, borderColor: isDarkMode ? '#444' : '#ddd' }
+      ]}>
+        <View style={[
+          styles.tableHeader,
+          { backgroundColor: isDarkMode ? '#333' : '#eaeaea' }
+        ]}>
+          <Text style={[styles.headerCell, { flex: 2, color: textColor }]}>Estate</Text>
+          <Text style={[styles.headerCell, { flex: 1.5, color: textColor }]}>Lat</Text>
+          <Text style={[styles.headerCell, { flex: 1.5, color: textColor }]}>Lon</Text>
+          <Text style={[styles.headerCell, { flex: 2.5, color: textColor }]}>Time</Text>
+        </View>
+
+        {locationList.map((loc, index) => (
+          <View
+            key={index}
+            style={[
+              styles.tableRow,
+              { borderTopColor: isDarkMode ? '#444' : '#ddd' },
+              index % 2 === 1 && {
+                backgroundColor: isDarkMode ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)'
+              }
+            ]}
+          >
+            <Text style={[styles.cell, { flex: 2, color: textColor }]} numberOfLines={1}>
+              {loc.estate}
+            </Text>
+            <Text style={[styles.cell, { flex: 1.5, color: textColor }]}>
+              {loc.lat.toFixed(3)}
+            </Text>
+            <Text style={[styles.cell, { flex: 1.5, color: textColor }]}>
+              {loc.lon.toFixed(3)}
+            </Text>
+            <Text style={[styles.cell, { flex: 2.5, color: textColor }]} numberOfLines={1}>
+              {new Date(loc.time).toLocaleString().split(',')[1]}
+            </Text>
+          </View>
+        ))}
+      </View> */}
+    </ScrollView>
   );
 };
 
@@ -98,15 +133,16 @@ const styles = StyleSheet.create({
   },
   tableHeader: {
     flexDirection: 'row',
-    padding: 12,
+    padding: 10,
   },
   headerCell: {
     fontWeight: '700',
-    fontSize: 16,
+    fontSize: 15,
   },
   tableRow: {
     flexDirection: 'row',
-    padding: 12,
+    paddingVertical: 10,
+    paddingHorizontal: 10,
     borderTopWidth: 1,
   },
   estateCell: {
@@ -119,10 +155,8 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     fontSize: 15,
   },
-  percentCell: {
-    flex: 1,
-    textAlign: 'center',
-    fontSize: 15,
+  cell: {
+    fontSize: 14,
   },
   totalRow: {
     flexDirection: 'row',
